@@ -1,0 +1,55 @@
+version: "3"
+services:
+  api-spring:
+    image: diegocale/alumni-spring:2.0.4
+    networks:
+      - net-cloud
+    container_name: api-alumni-spring
+    depends_on:
+      - mysql_alumni
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql_alumni:3306/alumni_bd?allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=mysqluser
+      - SPRING_DATASOURCE_PASSWORD=secret
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=false
+      - SPRING_DATASOURCE.CACHEPREPSTMTS=false
+    ports:
+      - 9094:5000
+    restart: always
+  
+  mysql_alumni:
+    image: mysql:8
+    networks:
+      - net-cloud
+    container_name: mysql_alumni
+    ports:
+      - 3308:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=alumni_bd
+      - MYSQL_USER=mysqluser
+      - MYSQL_PASSWORD=secret
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - ./mysql-conf:/etc/mysql/conf.d
+      - mysql-data:/var/lib/mysql
+    restart: always
+
+  web-angular-front:
+    image: diegocale/web-angular-front:1.0.1
+    networks:
+      - net-cloud
+    container_name: web-angular-front
+    ports:
+      - 9096:80
+    depends_on:
+      - api-spring 
+    restart: always
+
+networks:
+  net-cloud:
+
+volumes:
+  mysql-data:
+ 
